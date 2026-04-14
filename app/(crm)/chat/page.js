@@ -92,11 +92,11 @@ async function fetchBriefing() {
     let msg = `${saudacao}, Pedro. Aqui está seu radar de hoje:\n\n`;
 
     if (urgentes.length > 0)
-      msg += `🔴 ${urgentes.length} negociação${urgentes.length > 1 ? "ões urgentes" : " urgente"}${top3.length ? ` — ${top3.join(", ")}` : ""}\n`;
+      msg += `🔴 ${urgentes.length} ${urgentes.length > 1 ? "negociações urgentes" : "negociação urgente"}${top3.length ? ` — ${top3.join(", ")}` : ""}\n`;
     if (atencao.length > 0)
-      msg += `🟡 ${atencao.length} negociação${atencao.length > 1 ? "ões em atenção" : " em atenção"}\n`;
+      msg += `🟡 ${atencao.length} ${atencao.length > 1 ? "negociações em atenção" : "negociação em atenção"}\n`;
     if (tarefasHoje.length > 0)
-      msg += `📋 ${tarefasHoje.length} tarefa${tarefasHoje.length > 1 ? "s vencem" : " vence"} hoje\n`;
+      msg += `📋 ${tarefasHoje.length} ${tarefasHoje.length > 1 ? "tarefas vencem" : "tarefa vence"} hoje\n`;
 
     if (vermelho.length > 0)
       msg += `\n⚠️ Sem atualização há mais de 15 dias: ${vermelho.slice(0,3).map(i => `${i.parceiro} (${i.diasParado}d)`).join(", ")}`;
