@@ -19,33 +19,29 @@ function generateMessage(item) {
 
   const mensagens = {
     "aguardando proposta": [
-      `${saudacao}, queria saber se conseguiram avançar na elaboração da proposta de ${produto}. Estamos no aguardo para analisar.`,
-      `${saudacao}, ficou pendente o envio da proposta de ${produto}. Tem previsão de quando conseguem encaminhar?`,
-      `${saudacao}, queria retomar o tema de ${produto} — estamos aguardando a proposta de vocês para darmos continuidade.`
+      `${saudacao}, tudo bem? Estou entrando em contato para saber se você teve a oportunidade de elaborar a proposta que discutimos. Estou à disposição para ajudar!`,
+      `${saudacao}, tudo bem? Queria saber se conseguiu avançar na proposta de ${produto}. Qualquer dúvida, pode contar comigo!`,
+      `${saudacao}, tudo bem? Passando para saber se tem alguma novidade sobre a proposta de ${produto}. Fico no aguardo!`
     ],
-
     "compliance": [
-      `${saudacao}, queria entender como está a etapa de compliance para seguirmos com o processo.`,
-      `${saudacao}, conseguimos evoluir no compliance ou ainda depende de alguma validação interna?`,
-      `${saudacao}, tem algo na etapa de compliance em que eu possa ajudar para destravarmos isso?`
+      `${saudacao}, tudo bem? Queria saber se conseguiram avançar na etapa de compliance. Tem algo em que eu possa ajudar para agilizar?`,
+      `${saudacao}, tudo bem? Passando para entender como está o processo de compliance. Estou à disposição caso precisem de alguma informação adicional.`,
+      `${saudacao}, tudo bem? Queria checar se o compliance já teve alguma evolução. Qualquer coisa, pode me acionar!`
     ],
-
     "minuta com cliente": [
-      `${saudacao}, conseguiu revisar a minuta que enviamos? Podemos ajustar algo para avançar?`,
-      `${saudacao}, queria retomar a minuta com você e alinhar os próximos passos.`,
-      `${saudacao}, ficou alguma dúvida na minuta ou conseguimos seguir com a evolução disso?`
+      `${saudacao}, tudo bem? Gostaria de saber se o jurídico já deu algum retorno sobre a minuta de contrato. Qualquer dúvida, estou à disposição!`,
+      `${saudacao}, tudo bem? Passando para ver se conseguiram revisar a minuta que enviamos. Tem algum ponto para ajustarmos?`,
+      `${saudacao}, tudo bem? Queria entender se a minuta está OK do lado de vocês ou se precisamos alinhar algo antes de avançar.`
     ],
-
     "juridico": [
-      `${saudacao}, queria entender como está o andamento no jurídico para seguirmos com esse tema.`,
-      `${saudacao}, o jurídico conseguiu avançar na análise ou ainda está em avaliação?`,
-      `${saudacao}, conseguimos destravar algo no jurídico para dar sequência?`
+      `${saudacao}, tudo bem? Queria saber se o jurídico já conseguiu avançar na análise. Estou à disposição para qualquer dúvida!`,
+      `${saudacao}, tudo bem? Passando para checar se tem alguma novidade do jurídico. Qualquer informação adicional que precisarem, é só falar.`,
+      `${saudacao}, tudo bem? Queria entender como está o andamento no jurídico para alinharmos os próximos passos.`
     ],
-
     "fechamento": [
-      `${saudacao}, estamos bem próximos de concluir isso. Faz sentido avançarmos hoje?`,
-      `${saudacao}, queria alinhar os últimos pontos para fecharmos isso com você.`,
-      `${saudacao}, acho que estamos no momento de conclusão. Podemos seguir com o fechamento?`
+      `${saudacao}, tudo bem? Queria saber se o documento já foi assinado ou se tem algum ponto pendente para concluirmos.`,
+      `${saudacao}, tudo bem? Passando para checar se conseguiram avançar na assinatura. Estou à disposição para o que precisarem!`,
+      `${saudacao}, tudo bem? Queria alinhar os últimos detalhes para finalizarmos o processo. Tem algo pendente do lado de vocês?`
     ]
   };
 
