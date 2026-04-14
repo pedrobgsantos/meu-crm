@@ -214,7 +214,8 @@ export default function DashboardPage() {
 
   const resumo = pipelineCompleto.reduce((acc, item) => {
     const raw = item.status || "Sem status";
-    const status = raw.trim().charAt(0).toUpperCase() + raw.trim().slice(1).toLowerCase();
+    const normalized = raw.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+    const status = normalized.charAt(0).toUpperCase() + normalized.slice(1);
     acc.total++;
     acc.porStatus[status] = (acc.porStatus[status] || 0) + 1;
     return acc;
