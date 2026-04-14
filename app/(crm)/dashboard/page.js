@@ -212,10 +212,15 @@ export default function DashboardPage() {
 
   const proximosFollowups = pipelineRaw.slice(0, 5);
 
+  const normalizeStatus = (s) => (s || "Sem status")
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\b\w/g, c => c.toUpperCase());
+
   const resumo = pipelineCompleto.reduce((acc, item) => {
-    const raw = item.status || "Sem status";
-    const normalized = raw.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
-    const status = normalized.charAt(0).toUpperCase() + normalized.slice(1);
+    const status = normalizeStatus(item.status);
     acc.total++;
     acc.porStatus[status] = (acc.porStatus[status] || 0) + 1;
     return acc;
