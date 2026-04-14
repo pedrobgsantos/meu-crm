@@ -259,7 +259,7 @@ export default function DashboardPage() {
             ? <p className="text-sm text-slate-400 py-2 text-center">Nenhuma ação prioritária no momento.</p>
             : <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
                 {agora.map((item, i) => {
-                  const isPipeline = item._type === "pipeline";
+                  const isPipeline = item._type === "pipeline" || item.tipo === "pipeline";
                   return (
                     <div
                       key={item.id_followup ?? item.id ?? i}
