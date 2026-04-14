@@ -5,6 +5,7 @@ import PageHeader from "../../components/PageHeader";
 import Badge from "../../components/Badge";
 
 const WEBHOOK_URL = "/api/pipeline";
+const DASHBOARD_URL = "/api/dashboard";
 
 function generateMessage(item) {
   const parceiro = item.parceiro ?? "";
@@ -88,6 +89,10 @@ function FollowUpCard({ item, borderColor, diasColor, onMarcarFeito }) {
   const dias = item.diasParado ?? item.dias ?? null;
 
   const handleGenerate = async () => {
+    if (!message && item.mensagem_pronta) {
+      setMessage(item.mensagem_pronta);
+      return;
+    }
     setGenerating(true);
     try {
       const msg = await gerarMensagemLLM(item);
@@ -237,32 +242,36 @@ export default function FollowUpsPage() {
   const [error, setError]     = useState(false);
 
   useEffect(() => {
-    fetch(WEBHOOK_URL)
-      .then((res) => {
-        if (!res.ok) throw new Error("response not ok");
-        return res.json();
-      })
-      .then((json) => {
-        const items = Array.isArray(json?.response) ? json.response : [];
+    fetch(DASHBOARD_URL)
+      .then(r => r.json())
+      .then(json => {
+        if (json.status === "empty" || !json.resultado) {
+          return fetch(WEBHOOK_URL)
+            .then(r => r.json())
+            .then(json => {
+              const items = Array.isArray(json?.response) ? json.response : [];
+              setDados({
+                urgentes: items.filter(i => (i.prioridade||"").toLowerCase() === "urgente"),
+                atencao:  items.filter(i => ["atencao","atenção"].includes((i.prioridade||"").toLowerCase())),
+                ok:       items.filter(i => !["urgente","atencao","atenção"].includes((i.prioridade||"").toLowerCase())),
+              });
+              setLoading(false);
+            });
+        }
+
+        const response = json.resultado?.response ?? [];
+        const followups = response.filter(i => i.tipo === "pipeline" && i.action_type === "followup");
+        const resto = response.filter(i => i.tipo === "pipeline" && i.action_type !== "followup");
+        const todos = [...followups, ...resto];
 
         setDados({
-          urgentes: items.filter((item) => (item.prioridade || "").toLowerCase() === "urgente"),
-          atencao: items.filter((item) => {
-            const p = (item.prioridade || "").toLowerCase();
-            return p === "atencao" || p === "atenção";
-          }),
-          ok: items.filter((item) => {
-            const p = (item.prioridade || "").toLowerCase();
-            return !["urgente", "atencao", "atenção"].includes(p);
-          }),
+          urgentes: todos.filter(i => i.prioridade === "urgente"),
+          atencao:  todos.filter(i => i.prioridade === "atencao"),
+          ok:       todos.filter(i => i.prioridade === "ok"),
         });
-
         setLoading(false);
       })
-      .catch(() => {
-        setError(true);
-        setLoading(false);
-      });
+      .catch(() => { setError(true); setLoading(false); });
   }, []);
 
   async function marcarFollowupFeito(item) {
