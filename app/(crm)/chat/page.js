@@ -58,19 +58,96 @@ function extractReplyText(data) {
   );
 }
 
+async function fetchBriefing() {
+  try {
+    const res = await fetch("/api/dashboard");
+    const json = await res.json();
+    if (json.status !== "ok" || !json.resultado) return null;
+
+    const items = json.resultado.response ?? [];
+    const hoje = new Date();
+
+    const pipeline = items.filter(i => i.tipo === "pipeline");
+    const tarefas  = items.filter(i => i.tipo === "tarefa");
+
+    const urgentes   = pipeline.filter(i => i.prioridade === "urgente");
+    const atencao    = pipeline.filter(i => i.prioridade === "atencao");
+
+    const top3 = urgentes.slice(0, 3).map(i => i.parceiro).filter(Boolean);
+
+    const tarefasHoje = tarefas.filter(i => {
+      if (!i.prazo) return false;
+      const [d, m, y] = i.prazo.includes("/") ? i.prazo.split("/") : i.prazo.split("-").reverse();
+      const prazo = new Date(+y, +m - 1, +d);
+      return prazo.toDateString() === hoje.toDateString();
+    });
+
+    const radar = pipeline.filter(i => (i.diasParado ?? 0) >= 7).sort((a, b) => b.diasParado - a.diasParado);
+    const vermelho = radar.filter(i => i.diasParado >= 15);
+    const amarelo  = radar.filter(i => i.diasParado >= 7 && i.diasParado < 15);
+
+    const hora = hoje.getHours();
+    const saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
+
+    let msg = `${saudacao}, Pedro. Aqui está seu radar de hoje:\n\n`;
+
+    if (urgentes.length > 0)
+      msg += `🔴 ${urgentes.length} negociação${urgentes.length > 1 ? "ões urgentes" : " urgente"}${top3.length ? ` — ${top3.join(", ")}` : ""}\n`;
+    if (atencao.length > 0)
+      msg += `🟡 ${atencao.length} negociação${atencao.length > 1 ? "ões em atenção" : " em atenção"}\n`;
+    if (tarefasHoje.length > 0)
+      msg += `📋 ${tarefasHoje.length} tarefa${tarefasHoje.length > 1 ? "s vencem" : " vence"} hoje\n`;
+
+    if (vermelho.length > 0)
+      msg += `\n⚠️ Sem atualização há mais de 15 dias: ${vermelho.slice(0,3).map(i => `${i.parceiro} (${i.diasParado}d)`).join(", ")}`;
+    if (amarelo.length > 0)
+      msg += `\n⚠️ Sem atualização há mais de 7 dias: ${amarelo.slice(0,3).map(i => `${i.parceiro} (${i.diasParado}d)`).join(", ")}`;
+
+    msg += `\n\nQuer que eu gere os follow-ups urgentes ou prefere começar por outro ponto?`;
+
+    return msg.trim();
+  } catch {
+    return null;
+  }
+}
+
 export default function ChatPage() {
-  const [messages, setMessages] = useState(() => {
-    if (typeof window === "undefined") return [];
-    try {
-      const saved = localStorage.getItem("crm_chat_history");
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
-  });
+  const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const [briefingExibido, setBriefingExibido] = useState(false);
   const bottomRef = useRef(null);
+
+  useEffect(() => {
+    const hoje = new Date().toDateString();
+    const ultimoAcesso = localStorage.getItem("chat_ultimo_acesso");
+    const briefingHoje = localStorage.getItem("chat_briefing_data");
+
+    // Zera histórico se for novo dia
+    if (ultimoAcesso !== hoje) {
+      localStorage.removeItem("chat_historico");
+      localStorage.setItem("chat_ultimo_acesso", hoje);
+    }
+
+    const saved = localStorage.getItem("chat_historico");
+    const historico = saved ? JSON.parse(saved) : [];
+    setMessages(historico);
+
+    // Exibe briefing só uma vez por dia
+    if (briefingHoje !== hoje && !briefingExibido) {
+      fetchBriefing().then(briefing => {
+        if (briefing) {
+          const msg = { role: "assistant", content: briefing };
+          setMessages(prev => {
+            const updated = [msg, ...prev];
+            return updated;
+          });
+          localStorage.setItem("chat_briefing_data", hoje);
+          setBriefingExibido(true);
+        }
+      });
+    }
+  }, []);
 
   useEffect(() => {
     try {
