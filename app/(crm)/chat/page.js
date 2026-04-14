@@ -27,7 +27,7 @@ function Message({ msg }) {
             : "bg-white border border-slate-200 text-slate-800 rounded-bl-sm"
         }`}
       >
-        {msg.text}
+        {msg.text ?? msg.content ?? ""}
       </div>
     </div>
   );
