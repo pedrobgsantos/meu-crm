@@ -107,8 +107,8 @@ async function fetchBriefing() {
 
     console.log("BRIEFING:", msg);
     return msg.trim();
-  } catch {
-    return null;
+  } catch (e) {
+    return "ERRO: " + e.message;
   }
 }
 
@@ -140,10 +140,7 @@ export default function ChatPage() {
         console.log("BRIEFING RECEBIDO:", briefing);
         if (briefing) {
           const msg = { role: "assistant", content: briefing };
-          setMessages(prev => {
-            const updated = [msg, ...prev];
-            return updated;
-          });
+          setMessages([msg]);
           localStorage.setItem("crm_briefing_data", hoje);
           setBriefingExibido(true);
         }
