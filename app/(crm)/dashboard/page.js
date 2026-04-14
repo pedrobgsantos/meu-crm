@@ -99,6 +99,7 @@ export default function DashboardPage() {
   const [pipelineLoading, setPipelineLoading] = useState(true);
   const [tarefasLoading, setTarefasLoading]   = useState(true);
   const [pipelineError, setPipelineError]     = useState(false);
+  const [cardCounts, setCardCounts] = useState({ urgentes: 0, atencao: 0, ok: 0, total: 0 });
 
 
   function processPipeline(response) {
@@ -152,6 +153,20 @@ export default function DashboardPage() {
   }, []);
 
   useEffect(() => {
+    fetch(PIPELINE_URL)
+      .then(r => r.json())
+      .then(json => {
+        const raw = Array.isArray(json?.response) ? json.response : [];
+        const ativos = raw.filter(i => !["fechado","ganho","perdido"].includes((i.status||"").toLowerCase()));
+        const u = ativos.filter(i => (i.prioridade||"").toLowerCase() === "urgente");
+        const a = ativos.filter(i => ["atencao","atenção"].includes((i.prioridade||"").toLowerCase()));
+        const o = ativos.filter(i => !["urgente","atencao","atenção"].includes((i.prioridade||"").toLowerCase()));
+        setCardCounts({ urgentes: u.length, atencao: a.length, ok: o.length, total: ativos.length });
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
     fetch(TAREFAS_URL)
       .then((res) => { if (!res.ok) throw new Error(); return res.json(); })
       .then((json) => { setTarefas(extractTasks(json)); setTarefasLoading(false); })
@@ -184,11 +199,7 @@ export default function DashboardPage() {
     .slice(0, 3)
     .map((t) => ({ ...t, _type: "tarefa" }));
 
-  const pipelineOrdenado = [
-    ...[...urgentes],
-    ...[...atencao],
-    ...[...ok],
-  ].slice(0, 3).map((p) => ({ ...p, _type: "pipeline" }));
+  const pipelineOrdenado = [...urgentes, ...atencao, ...ok].map(p => ({ ...p, _type: "pipeline" }));
 
   const agora = [...tarefasAtivas, ...pipelineOrdenado];
 
@@ -206,10 +217,10 @@ export default function DashboardPage() {
   const tarefasPendentesCount = activeTasks.length;
 
   const cards = [
-    { label: "Negociações urgentes", value: urgentes.length,        color: "red"   },
-    { label: "Em atenção",           value: atencao.length,         color: "amber" },
-    { label: "Dentro do prazo",      value: ok.length,              color: "green" },
-    { label: "Tarefas pendentes",    value: tarefasPendentesCount,  color: "slate" },
+    { label: "Negociações urgentes", value: cardCounts.urgentes,   color: "red"   },
+    { label: "Em atenção",           value: cardCounts.atencao,    color: "amber" },
+    { label: "Dentro do prazo",      value: cardCounts.ok,         color: "green" },
+    { label: "Tarefas pendentes",    value: tarefasPendentesCount, color: "slate" },
   ];
 
   return (
