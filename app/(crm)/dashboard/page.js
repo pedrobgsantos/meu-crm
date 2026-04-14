@@ -213,9 +213,8 @@ export default function DashboardPage() {
   const proximosFollowups = pipelineRaw.slice(0, 5);
 
   const resumo = pipelineCompleto.reduce((acc, item) => {
-    const status = item.status
-      ? item.status.charAt(0).toUpperCase() + item.status.slice(1).toLowerCase()
-      : "Sem status";
+    const raw = item.status || "Sem status";
+    const status = raw.trim().charAt(0).toUpperCase() + raw.trim().slice(1).toLowerCase();
     acc.total++;
     acc.porStatus[status] = (acc.porStatus[status] || 0) + 1;
     return acc;
