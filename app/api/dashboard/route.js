@@ -24,17 +24,30 @@ export async function GET() {
 
     const raw = rows[0].resultado;
 
-    // O Decision Engine salva nos buckets agora/hoje/podeEsperar
-    // O Dashboard consome um array flat com campo prioridade (urgente/atencao/ok)
-    // Fazemos a tradução aqui
-    const agora      = Array.isArray(raw?.agora)       ? raw.agora       : [];
-    const hoje       = Array.isArray(raw?.hoje)        ? raw.hoje        : [];
+    const agora       = Array.isArray(raw?.agora)       ? raw.agora       : [];
+    const hoje        = Array.isArray(raw?.hoje)        ? raw.hoje        : [];
     const podeEsperar = Array.isArray(raw?.podeEsperar) ? raw.podeEsperar : [];
 
+    function normalizeItem(item, prioridade) {
+      const isPipeline = item.tipo === "pipeline";
+
+      // Para pipeline: status vem do acao_recomendada não existe no cache
+      // Usa o motivo[0] como fallback descritivo, ou deixa string vazia
+      const status = item.status
+        || (isPipeline ? (item.motivo?.[0] || "") : (item.motivo?.[0] || ""));
+
+      return {
+        ...item,
+        prioridade,
+        status,
+        diasParado: item.diasParado ?? 0,
+      };
+    }
+
     const response = [
-      ...agora.map((i)        => ({ ...i, prioridade: "urgente" })),
-      ...hoje.map((i)         => ({ ...i, prioridade: "atencao" })),
-      ...podeEsperar.map((i)  => ({ ...i, prioridade: "ok"      })),
+      ...agora.map((i)       => normalizeItem(i, "urgente")),
+      ...hoje.map((i)        => normalizeItem(i, "atencao")),
+      ...podeEsperar.map((i) => normalizeItem(i, "ok")),
     ];
 
     return Response.json({
