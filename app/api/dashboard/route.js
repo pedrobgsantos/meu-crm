@@ -22,11 +22,27 @@ export async function GET() {
       return Response.json({ status: "empty", resultado: null });
     }
 
+    const raw = rows[0].resultado;
+
+    // O Decision Engine salva nos buckets agora/hoje/podeEsperar
+    // O Dashboard consome um array flat com campo prioridade (urgente/atencao/ok)
+    // Fazemos a tradução aqui
+    const agora      = Array.isArray(raw?.agora)       ? raw.agora       : [];
+    const hoje       = Array.isArray(raw?.hoje)        ? raw.hoje        : [];
+    const podeEsperar = Array.isArray(raw?.podeEsperar) ? raw.podeEsperar : [];
+
+    const response = [
+      ...agora.map((i)        => ({ ...i, prioridade: "urgente" })),
+      ...hoje.map((i)         => ({ ...i, prioridade: "atencao" })),
+      ...podeEsperar.map((i)  => ({ ...i, prioridade: "ok"      })),
+    ];
+
     return Response.json({
       status: "ok",
-      resultado: rows[0].resultado,
+      resultado: { response },
       gerado_em: rows[0].gerado_em,
     });
+
   } catch {
     return Response.json({ status: "error" }, { status: 500 });
   }
