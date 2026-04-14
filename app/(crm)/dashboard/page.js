@@ -159,10 +159,15 @@ export default function DashboardPage() {
       .then(json => {
         const raw = Array.isArray(json?.response) ? json.response : [];
         const ativos = raw.filter(i => !["fechado","ganho","perdido"].includes((i.status||"").toLowerCase()));
-        const u = ativos.filter(i => (i.prioridade||"").toLowerCase() === "urgente");
-        const a = ativos.filter(i => ["atencao","atenção"].includes((i.prioridade||"").toLowerCase()));
-        const o = ativos.filter(i => !["urgente","atencao","atenção"].includes((i.prioridade||"").toLowerCase()));
-        setCardCounts({ urgentes: u.length, atencao: a.length, ok: o.length, total: ativos.length });
+        const statusCount = ativos.reduce((acc, i) => {
+          const s = (i.status || "sem status").toLowerCase();
+          acc[s] = (acc[s] || 0) + 1;
+          return acc;
+        }, {});
+        const urgentes_count = (statusCount["juridico"] || 0) + (statusCount["fechamento"] || 0);
+        const atencao_count = (statusCount["compliance"] || 0) + (statusCount["minuta com cliente"] || 0);
+        const ok_count = ativos.length - urgentes_count - atencao_count;
+        setCardCounts({ urgentes: urgentes_count, atencao: atencao_count, ok: ok_count, total: ativos.length });
         setPipelineCompleto(ativos);
       })
       .catch(() => {});
@@ -201,7 +206,7 @@ export default function DashboardPage() {
     .slice(0, 3)
     .map((t) => ({ ...t, _type: "tarefa" }));
 
-  const pipelineOrdenado = [...urgentes, ...atencao, ...ok].map(p => ({ ...p, _type: "pipeline" }));
+  const pipelineOrdenado = [...urgentes, ...atencao, ...ok].slice(0, 3).map(p => ({ ...p, _type: "pipeline" }));
 
   const agora = [...tarefasAtivas, ...pipelineOrdenado];
 
