@@ -62,32 +62,36 @@ async function fetchBriefing() {
   try {
     const res = await fetch("/api/dashboard");
     const json = await res.json();
-    if (json.status !== "ok" || !json.resultado) return null;
+
+    if (json.status !== "ok" || !json.resultado) return "SEM DADOS";
 
     const items = json.resultado.response ?? [];
+    if (items.length === 0) return "ITEMS VAZIO";
+
     const hoje = new Date();
+    const hora = hoje.getHours();
+    const saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
 
     const pipeline = items.filter(i => i.tipo === "pipeline");
     const tarefas  = items.filter(i => i.tipo === "tarefa");
 
-    const urgentes   = pipeline.filter(i => i.prioridade === "urgente");
-    const atencao    = pipeline.filter(i => i.prioridade === "atencao");
-
-    const top3 = urgentes.slice(0, 3).map(i => i.parceiro).filter(Boolean);
+    const urgentes = pipeline.filter(i => i.prioridade === "urgente");
+    const atencao  = pipeline.filter(i => i.prioridade === "atencao");
+    const top3     = urgentes.slice(0, 3).map(i => i.parceiro).filter(Boolean);
 
     const tarefasHoje = tarefas.filter(i => {
       if (!i.prazo) return false;
-      const [d, m, y] = i.prazo.includes("/") ? i.prazo.split("/") : i.prazo.split("-").reverse();
-      const prazo = new Date(+y, +m - 1, +d);
-      return prazo.toDateString() === hoje.toDateString();
+      try {
+        const parts = i.prazo.includes("/") ? i.prazo.split("/") : i.prazo.split("-").reverse();
+        const [d, m, y] = parts;
+        const prazo = new Date(+y, +m - 1, +d);
+        return prazo.toDateString() === hoje.toDateString();
+      } catch { return false; }
     });
 
-    const radar = pipeline.filter(i => (i.diasParado ?? 0) >= 7).sort((a, b) => b.diasParado - a.diasParado);
+    const radar    = pipeline.filter(i => (i.diasParado ?? 0) >= 7).sort((a, b) => b.diasParado - a.diasParado);
     const vermelho = radar.filter(i => i.diasParado >= 15);
     const amarelo  = radar.filter(i => i.diasParado >= 7 && i.diasParado < 15);
-
-    const hora = hoje.getHours();
-    const saudacao = hora < 12 ? "Bom dia" : hora < 18 ? "Boa tarde" : "Boa noite";
 
     let msg = `${saudacao}, Pedro. Aqui está seu radar de hoje:\n\n`;
 
@@ -97,7 +101,6 @@ async function fetchBriefing() {
       msg += `🟡 ${atencao.length} ${atencao.length > 1 ? "negociações em atenção" : "negociação em atenção"}\n`;
     if (tarefasHoje.length > 0)
       msg += `📋 ${tarefasHoje.length} ${tarefasHoje.length > 1 ? "tarefas vencem" : "tarefa vence"} hoje\n`;
-
     if (vermelho.length > 0)
       msg += `\n⚠️ Sem atualização há mais de 15 dias: ${vermelho.slice(0,3).map(i => `${i.parceiro} (${i.diasParado}d)`).join(", ")}`;
     if (amarelo.length > 0)
@@ -105,7 +108,6 @@ async function fetchBriefing() {
 
     msg += `\n\nQuer que eu gere os follow-ups urgentes ou prefere começar por outro ponto?`;
 
-    console.log("BRIEFING:", msg);
     return msg.trim();
   } catch (e) {
     return "ERRO: " + e.message;
