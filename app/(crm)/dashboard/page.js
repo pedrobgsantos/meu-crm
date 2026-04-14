@@ -100,6 +100,7 @@ export default function DashboardPage() {
   const [tarefasLoading, setTarefasLoading]   = useState(true);
   const [pipelineError, setPipelineError]     = useState(false);
   const [cardCounts, setCardCounts] = useState({ urgentes: 0, atencao: 0, ok: 0, total: 0 });
+  const [pipelineCompleto, setPipelineCompleto] = useState([]);
 
 
   function processPipeline(response) {
@@ -162,6 +163,7 @@ export default function DashboardPage() {
         const a = ativos.filter(i => ["atencao","atenção"].includes((i.prioridade||"").toLowerCase()));
         const o = ativos.filter(i => !["urgente","atencao","atenção"].includes((i.prioridade||"").toLowerCase()));
         setCardCounts({ urgentes: u.length, atencao: a.length, ok: o.length, total: ativos.length });
+        setPipelineCompleto(ativos);
       })
       .catch(() => {});
   }, []);
@@ -205,8 +207,10 @@ export default function DashboardPage() {
 
   const proximosFollowups = pipelineRaw.slice(0, 5);
 
-  const resumo = pipelineRaw.reduce((acc, item) => {
-    const status = item.status || "Sem status";
+  const resumo = pipelineCompleto.reduce((acc, item) => {
+    const status = item.status
+      ? item.status.charAt(0).toUpperCase() + item.status.slice(1).toLowerCase()
+      : "Sem status";
     acc.total++;
     acc.porStatus[status] = (acc.porStatus[status] || 0) + 1;
     return acc;
