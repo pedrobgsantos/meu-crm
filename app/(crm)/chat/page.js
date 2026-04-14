@@ -121,16 +121,16 @@ export default function ChatPage() {
 
   useEffect(() => {
     const hoje = new Date().toDateString();
-    const ultimoAcesso = localStorage.getItem("chat_ultimo_acesso");
-    const briefingHoje = localStorage.getItem("chat_briefing_data");
+    const ultimoAcesso = localStorage.getItem("crm_ultimo_acesso");
+    const briefingHoje = localStorage.getItem("crm_briefing_data");
 
     // Zera histórico se for novo dia
     if (ultimoAcesso !== hoje) {
-      localStorage.removeItem("chat_historico");
-      localStorage.setItem("chat_ultimo_acesso", hoje);
+      localStorage.removeItem("crm_chat_history");
+      localStorage.setItem("crm_ultimo_acesso", hoje);
     }
 
-    const saved = localStorage.getItem("chat_historico");
+    const saved = localStorage.getItem("crm_chat_history");
     const historico = saved ? JSON.parse(saved) : [];
     setMessages(historico);
 
@@ -144,7 +144,7 @@ export default function ChatPage() {
             const updated = [msg, ...prev];
             return updated;
           });
-          localStorage.setItem("chat_briefing_data", hoje);
+          localStorage.setItem("crm_briefing_data", hoje);
           setBriefingExibido(true);
         }
       });
