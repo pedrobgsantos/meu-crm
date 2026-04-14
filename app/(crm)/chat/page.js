@@ -139,12 +139,12 @@ export default function ChatPage() {
     // Exibe briefing só uma vez por dia
     if (briefingHoje !== hoje && !briefingExibido) {
       fetchBriefing().then(briefing => {
-        console.log("BRIEFING RECEBIDO:", briefing);
         if (briefing) {
+          localStorage.setItem("crm_briefing_data", hoje);
+          localStorage.setItem("crm_ultimo_acesso", hoje);
+          setBriefingExibido(true);
           const msg = { role: "assistant", content: briefing };
           setMessages([msg]);
-          localStorage.setItem("crm_briefing_data", hoje);
-          setBriefingExibido(true);
         }
       });
     }
