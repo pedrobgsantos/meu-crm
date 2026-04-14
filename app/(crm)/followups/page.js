@@ -19,9 +19,9 @@ function generateMessage(item) {
 
   const mensagens = {
     "aguardando proposta": [
-      `${saudacao}, conseguiu avançar com a proposta de ${produto}? Queria dar andamento nisso ainda essa semana.`,
-      `${saudacao}, ficou pendente seu retorno sobre ${produto}. Faz sentido retomarmos isso agora?`,
-      `${saudacao}, queria retomar o tema de ${produto} com você para entendermos como avançar.`
+      `${saudacao}, queria saber se conseguiram avançar na elaboração da proposta de ${produto}. Estamos no aguardo para analisar.`,
+      `${saudacao}, ficou pendente o envio da proposta de ${produto}. Tem previsão de quando conseguem encaminhar?`,
+      `${saudacao}, queria retomar o tema de ${produto} — estamos aguardando a proposta de vocês para darmos continuidade.`
     ],
 
     "compliance": [
