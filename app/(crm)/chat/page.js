@@ -105,6 +105,7 @@ async function fetchBriefing() {
 
     msg += `\n\nQuer que eu gere os follow-ups urgentes ou prefere começar por outro ponto?`;
 
+    console.log("BRIEFING:", msg);
     return msg.trim();
   } catch {
     return null;
@@ -136,6 +137,7 @@ export default function ChatPage() {
     // Exibe briefing só uma vez por dia
     if (briefingHoje !== hoje && !briefingExibido) {
       fetchBriefing().then(briefing => {
+        console.log("BRIEFING RECEBIDO:", briefing);
         if (briefing) {
           const msg = { role: "assistant", content: briefing };
           setMessages(prev => {
