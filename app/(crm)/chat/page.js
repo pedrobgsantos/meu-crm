@@ -76,7 +76,8 @@ async function fetchBriefing() {
     const tarefas  = items.filter(i => i.tipo === "tarefa");
 
     const urgentes = pipeline.filter(i => i.prioridade === "urgente");
-    const atencao  = pipeline.filter(i => i.prioridade === "atencao" || i.prioridade === "ok");
+    const atencao      = pipeline.filter(i => i.prioridade === "atencao");
+    const dentroPrazo  = pipeline.filter(i => i.prioridade === "ok");
     const top3     = urgentes.slice(0, 3).map(i => i.parceiro).filter(Boolean);
 
     const tarefasHoje = tarefas.filter(i => {
@@ -100,6 +101,8 @@ async function fetchBriefing() {
       msg += `🔴 ${urgentes.length} ${urgentes.length > 1 ? "negociações urgentes" : "negociação urgente"}${top3.length ? ` — ${top3.join(", ")}` : ""}\n`;
     if (atencao.length > 0)
       msg += `🟡 ${atencao.length} ${atencao.length > 1 ? "negociações em atenção" : "negociação em atenção"}\n`;
+    if (dentroPrazo.length > 0)
+      msg += `🟢 ${dentroPrazo.length} ${dentroPrazo.length > 1 ? "negociações dentro do prazo" : "negociação dentro do prazo"}\n`;
     if (tarefasHoje.length > 0)
       msg += `📋 ${tarefasHoje.length} ${tarefasHoje.length > 1 ? "tarefas vencem" : "tarefa vence"} hoje\n`;
     if (vermelho.length > 0)
