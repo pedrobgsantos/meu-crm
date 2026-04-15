@@ -76,7 +76,7 @@ async function fetchBriefing() {
     const tarefas  = items.filter(i => i.tipo === "tarefa");
 
     const urgentes = pipeline.filter(i => i.prioridade === "urgente");
-    const atencao  = pipeline.filter(i => i.prioridade === "atencao");
+    const atencao  = pipeline.filter(i => i.prioridade === "atencao" || i.prioridade === "ok");
     const top3     = urgentes.slice(0, 3).map(i => i.parceiro).filter(Boolean);
 
     const tarefasHoje = tarefas.filter(i => {
@@ -89,9 +89,10 @@ async function fetchBriefing() {
       } catch { return false; }
     });
 
-    const radar    = pipeline.filter(i => (i.diasParado ?? 0) >= 7).sort((a, b) => b.diasParado - a.diasParado);
-    const vermelho = radar.filter(i => i.diasParado >= 15);
-    const amarelo  = radar.filter(i => i.diasParado >= 7 && i.diasParado < 15);
+    const parceirosUrgentes = new Set(urgentes.map(i => i.parceiro));
+    const radarFiltrado = pipeline.filter(i => (i.diasParado ?? 0) >= 7 && !parceirosUrgentes.has(i.parceiro)).sort((a, b) => b.diasParado - a.diasParado);
+    const vermelho = radarFiltrado.filter(i => i.diasParado >= 15);
+    const amarelo  = radarFiltrado.filter(i => i.diasParado >= 7 && i.diasParado < 15);
 
     let msg = `${saudacao}, Pedro. Aqui está seu radar de hoje:\n\n`;
 
