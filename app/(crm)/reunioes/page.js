@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PageHeader from "../../components/PageHeader";
 
 const WEBHOOK_URL = "https://pedrobgsantos.app.n8n.cloud/webhook/processar-reuniao";
@@ -19,6 +19,14 @@ export default function ReunioesPage() {
   const [tarefas, setTarefas] = useState([]);
   const [pipeline, setPipeline] = useState(null);
   const [memoria, setMemoria] = useState([]);
+  const [historico, setHistorico] = useState([]);
+
+  useEffect(() => {
+    fetch("/api/reunioes")
+      .then(r => r.json())
+      .then(json => { if (json.status === "ok") setHistorico(json.reunioes); })
+      .catch(() => {});
+  }, []);
 
   async function handleProcessar() {
     if (!notas.trim()) return;
@@ -78,6 +86,24 @@ export default function ReunioesPage() {
         body: JSON.stringify({ mensagem: msg, sessionId: "pedro-brigido" }),
       });
     }
+    await fetch("/api/reunioes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        parceiro,
+        ponto_focal: pontoFocal,
+        data_reuniao: dataReuniao,
+        notas,
+        tarefas: tarefas.filter(t => t.ativo),
+        pipeline,
+        memoria,
+      }),
+    });
+    setHistorico(prev => [{
+      parceiro, ponto_focal: pontoFocal, data_reuniao: dataReuniao,
+      notas, tarefas: tarefas.filter(t => t.ativo), pipeline, memoria,
+      criado_em: new Date().toISOString()
+    }, ...prev]);
     setExecutando(false);
     setExecutado(true);
     setPreview(null);
@@ -209,6 +235,40 @@ export default function ReunioesPage() {
             <button onClick={handleCancelar} className="bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 text-sm font-medium px-5 py-2.5 rounded-lg transition-colors">
               Cancelar
             </button>
+          </div>
+        </div>
+      )}
+
+      {historico.length > 0 && (
+        <div>
+          <h2 className="text-sm font-semibold text-slate-900 mb-4">Últimos resumos</h2>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {historico.map((r, i) => (
+              <div key={i} className="bg-white border border-slate-200 rounded-xl p-5">
+                <div className="flex items-start justify-between gap-3 mb-3">
+                  <div>
+                    <p className="font-semibold text-slate-800 text-sm">{r.parceiro || "Sem parceiro"}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{r.data_reuniao || r.criado_em?.split("T")[0]}</p>
+                  </div>
+                </div>
+                <p className="text-sm text-slate-600 leading-relaxed mb-4 line-clamp-3">{r.notas}</p>
+                {Array.isArray(r.tarefas) && r.tarefas.length > 0 && (
+                  <div>
+                    <p className="text-xs font-medium text-slate-500 mb-2">Tarefas geradas:</p>
+                    <ul className="space-y-1">
+                      {r.tarefas.slice(0, 3).map((t, j) => (
+                        <li key={j} className="flex items-start gap-2 text-xs text-slate-600">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-3.5 h-3.5 text-green-500 mt-0.5 shrink-0">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          {t.titulo}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}
