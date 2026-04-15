@@ -61,11 +61,12 @@ export default function ReunioesPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mensagem: msg }),
       });
+      console.log("Tarefa enviada:", msg);
     }
     if (pipeline && parceiro) {
       const msg = pipeline.acao === "atualizar"
-        ? `atualizar negociação ${parceiro} para ${pipeline.status_novo}${pipeline.resumo ? `. Observação: ${pipeline.resumo}` : ""}`
-        : `registrar negociação com parceiro ${parceiro}, produto ${pipeline.produto || "benefícios corporativos"}, status ${pipeline.status_novo || "aguardando proposta"}${pipeline.resumo ? `, resumo: ${pipeline.resumo}` : ""}`;
+        ? `atualizar negociação ${parceiro} para ${pipeline.status_novo}${pontoFocal ? `, ponto focal ${pontoFocal}` : ""}${pipeline.resumo ? `. Observação: ${pipeline.resumo}` : ""}`
+        : `registrar negociação com parceiro ${parceiro}${pontoFocal ? `, ponto focal ${pontoFocal}` : ""}, produto ${pipeline.produto || "benefícios corporativos"}, status ${pipeline.status_novo || "aguardando proposta"}${pipeline.resumo ? `, resumo: ${pipeline.resumo}` : ""}`;
       await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -133,7 +134,15 @@ export default function ReunioesPage() {
               </div>
               <div>
                 <label className="text-xs font-medium text-slate-500 mb-1 block">Data da reunião</label>
-                <input value={dataReuniao} onChange={e => setDataReuniao(e.target.value)} className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400" placeholder="DD/MM/AAAA" />
+                <input
+                  type="date"
+                  value={dataReuniao ? (dataReuniao.includes("/") ? dataReuniao.split("/").reverse().join("-") : dataReuniao) : ""}
+                  onChange={e => {
+                    const [y,m,d] = e.target.value.split("-");
+                    setDataReuniao(`${d}/${m}/${y}`);
+                  }}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400"
+                />
               </div>
               <div>
                 <label className="text-xs font-medium text-slate-500 mb-1 block">Ponto focal</label>
