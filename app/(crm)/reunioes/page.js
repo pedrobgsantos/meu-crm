@@ -169,9 +169,14 @@ export default function ReunioesPage() {
                   type="date"
                   value={dataReuniao ? (dataReuniao.includes("/") ? dataReuniao.split("/").reverse().join("-") : dataReuniao) : ""}
                   onChange={e => {
-                    const [y,m,d] = e.target.value.split("-");
-                    setDataReuniao(`${d}/${m}/${y}`);
+                    if (e.target.value) {
+                      const [y,m,d] = e.target.value.split("-");
+                      setDataReuniao(`${d}/${m}/${y}`);
+                    } else {
+                      setDataReuniao("");
+                    }
                   }}
+                  onKeyDown={e => e.stopPropagation()}
                   className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400"
                 />
               </div>
@@ -191,7 +196,21 @@ export default function ReunioesPage() {
                     <input type="checkbox" checked={t.ativo} onChange={() => toggleTarefa(t.id)} className="mt-1 shrink-0" />
                     <div className="flex-1 grid grid-cols-1 sm:grid-cols-3 gap-2">
                       <input value={t.titulo} onChange={e => editTarefa(t.id, "titulo", e.target.value)} disabled={!t.ativo} className="sm:col-span-2 border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-700 outline-none focus:border-slate-400 disabled:bg-transparent disabled:border-transparent" placeholder="Título da tarefa" />
-                      <input value={t.prazo} onChange={e => editTarefa(t.id, "prazo", e.target.value)} disabled={!t.ativo} className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-700 outline-none focus:border-slate-400 disabled:bg-transparent disabled:border-transparent" placeholder="Prazo DD/MM/AAAA" />
+                      <input
+                        type="date"
+                        value={t.prazo ? (t.prazo.includes("/") ? t.prazo.split("/").reverse().join("-") : t.prazo) : ""}
+                        onChange={e => {
+                          if (e.target.value) {
+                            const [y,m,d] = e.target.value.split("-");
+                            editTarefa(t.id, "prazo", `${d}/${m}/${y}`);
+                          } else {
+                            editTarefa(t.id, "prazo", "");
+                          }
+                        }}
+                        disabled={!t.ativo}
+                        className="border border-slate-200 rounded-lg px-3 py-1.5 text-sm text-slate-700 outline-none focus:border-slate-400 disabled:bg-transparent disabled:border-transparent"
+                        placeholder="Prazo"
+                      />
                     </div>
                   </div>
                 ))}
