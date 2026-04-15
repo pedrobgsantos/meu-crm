@@ -59,7 +59,7 @@ export default function ReunioesPage() {
       await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mensagem: msg }),
+        body: JSON.stringify({ mensagem: msg, sessionId: "pedro-brigido" }),
       });
       console.log("Tarefa enviada:", msg);
     }
@@ -70,7 +70,7 @@ export default function ReunioesPage() {
       await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mensagem: msg }),
+        body: JSON.stringify({ mensagem: msg, sessionId: "pedro-brigido" }),
       });
     }
     setExecutando(false);
