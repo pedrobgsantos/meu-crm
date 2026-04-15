@@ -20,6 +20,10 @@ export default function ReunioesPage() {
   const [pipeline, setPipeline] = useState(null);
   const [memoria, setMemoria] = useState([]);
   const [historico, setHistorico] = useState([]);
+  const [dadosProcessados, setDadosProcessados] = useState(null);
+  const [filtroP, setFiltroP] = useState("");
+  const [filtroData, setFiltroData] = useState("");
+  const [expandido, setExpandido] = useState(null);
 
   useEffect(() => {
     fetch("/api/reunioes")
@@ -52,6 +56,7 @@ export default function ReunioesPage() {
       setTarefas((d.tarefas || []).map((t, i) => ({ ...t, id: i, ativo: true })));
       setPipeline(d.pipeline?.acao !== "nenhuma" ? d.pipeline : null);
       setMemoria(d.memoria || []);
+      setDadosProcessados(d);
       setPreview(true);
     } catch {
       setErro("Erro de conexão. Verifique sua internet e tente novamente.");
@@ -97,11 +102,13 @@ export default function ReunioesPage() {
         tarefas: tarefas.filter(t => t.ativo),
         pipeline,
         memoria,
+        resumo_reuniao: dadosProcessados?.resumo_reuniao || "",
       }),
     });
     setHistorico(prev => [{
       parceiro, ponto_focal: pontoFocal, data_reuniao: dataReuniao,
       notas, tarefas: tarefas.filter(t => t.ativo), pipeline, memoria,
+      resumo_reuniao: dadosProcessados?.resumo_reuniao || "",
       criado_em: new Date().toISOString()
     }, ...prev]);
     setExecutando(false);
@@ -260,34 +267,101 @@ export default function ReunioesPage() {
 
       {historico.length > 0 && (
         <div>
-          <h2 className="text-sm font-semibold text-slate-900 mb-4">Últimos resumos</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {historico.map((r, i) => (
-              <div key={i} className="bg-white border border-slate-200 rounded-xl p-5">
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div>
-                    <p className="font-semibold text-slate-800 text-sm">{r.parceiro || "Sem parceiro"}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{r.data_reuniao || r.criado_em?.split("T")[0]}</p>
-                  </div>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-sm font-semibold text-slate-900">Últimos resumos</h2>
+          </div>
+
+          {/* Filtros */}
+          <div className="flex gap-3 mb-4">
+            <input
+              value={filtroP}
+              onChange={e => setFiltroP(e.target.value)}
+              placeholder="Filtrar por parceiro..."
+              className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400"
+            />
+            <input
+              type="date"
+              value={filtroData}
+              onChange={e => setFiltroData(e.target.value)}
+              className="border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400"
+            />
+            {(filtroP || filtroData) && (
+              <button onClick={() => { setFiltroP(""); setFiltroData(""); }} className="text-xs text-slate-400 hover:text-slate-600 px-2">
+                Limpar
+              </button>
+            )}
+          </div>
+
+          {/* Lista */}
+          <div className="space-y-2">
+            {historico
+              .filter(r => {
+                const matchP = !filtroP || (r.parceiro || "").toLowerCase().includes(filtroP.toLowerCase());
+                const matchD = !filtroData || (r.data_reuniao || "").includes(filtroData.split("-").reverse().join("/"));
+                return matchP && matchD;
+              })
+              .map((r, i) => (
+                <div key={i} className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+                  <button
+                    onClick={() => setExpandido(expandido === i ? null : i)}
+                    className="w-full flex items-center justify-between px-5 py-4 text-left hover:bg-slate-50 transition-colors"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div>
+                        <p className="text-sm font-semibold text-slate-800">{r.parceiro || "Sem parceiro"}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">{r.data_reuniao || r.criado_em?.split("T")[0]} {r.ponto_focal ? `· ${r.ponto_focal}` : ""}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      {Array.isArray(r.tarefas) && r.tarefas.length > 0 && (
+                        <span className="text-xs text-slate-500">{r.tarefas.length} tarefa{r.tarefas.length > 1 ? "s" : ""}</span>
+                      )}
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} className={`w-4 h-4 text-slate-400 transition-transform ${expandido === i ? "rotate-180" : ""}`}>
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </div>
+                  </button>
+
+                  {expandido === i && (
+                    <div className="px-5 pb-5 border-t border-slate-100 pt-4 space-y-4">
+                      {r.resumo_reuniao && (
+                        <div>
+                          <p className="text-xs font-medium text-slate-500 mb-1">Resumo</p>
+                          <p className="text-sm text-slate-600 leading-relaxed">{r.resumo_reuniao}</p>
+                        </div>
+                      )}
+                      {Array.isArray(r.tarefas) && r.tarefas.length > 0 && (
+                        <div>
+                          <p className="text-xs font-medium text-slate-500 mb-2">Tarefas geradas</p>
+                          <ul className="space-y-1">
+                            {r.tarefas.map((t, j) => (
+                              <li key={j} className="flex items-start gap-2 text-xs text-slate-600">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-3.5 h-3.5 text-green-500 mt-0.5 shrink-0">
+                                  <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                                {t.titulo}{t.prazo ? ` — ${t.prazo}` : ""}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                      {Array.isArray(r.memoria) && r.memoria.length > 0 && (
+                        <div>
+                          <p className="text-xs font-medium text-slate-500 mb-2">Pontos para memória</p>
+                          <ul className="space-y-1">
+                            {r.memoria.map((m, j) => (
+                              <li key={j} className="flex items-start gap-2 text-xs text-slate-600">
+                                <span className="text-slate-400 mt-0.5">•</span>
+                                {m}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-                <p className="text-sm text-slate-600 leading-relaxed mb-4 line-clamp-3">{r.notas}</p>
-                {Array.isArray(r.tarefas) && r.tarefas.length > 0 && (
-                  <div>
-                    <p className="text-xs font-medium text-slate-500 mb-2">Tarefas geradas:</p>
-                    <ul className="space-y-1">
-                      {r.tarefas.slice(0, 3).map((t, j) => (
-                        <li key={j} className="flex items-start gap-2 text-xs text-slate-600">
-                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} className="w-3.5 h-3.5 text-green-500 mt-0.5 shrink-0">
-                            <polyline points="20 6 9 17 4 12" />
-                          </svg>
-                          {t.titulo}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       )}

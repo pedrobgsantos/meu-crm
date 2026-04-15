@@ -30,9 +30,10 @@ export async function POST(request) {
         ponto_focal:  body.ponto_focal || "",
         data_reuniao: body.data_reuniao || "",
         notas:        body.notas || "",
-        tarefas:      body.tarefas || [],
-        pipeline:     body.pipeline || null,
-        memoria:      body.memoria || [],
+        tarefas:         body.tarefas || [],
+        pipeline:        body.pipeline || null,
+        memoria:         body.memoria || [],
+        resumo_reuniao:  body.resumo_reuniao || "",
       }),
     });
     if (!res.ok) throw new Error();
