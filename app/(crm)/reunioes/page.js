@@ -143,7 +143,7 @@ export default function ReunioesPage() {
           <textarea
             value={notas}
             onChange={(e) => setNotas(e.target.value)}
-            rows={7}
+            rows={5}
             placeholder="Cole aqui o resumo da reunião, transcrição ou anotações..."
             className="w-full border border-slate-200 rounded-lg px-4 py-3 text-sm text-slate-700 placeholder-slate-400 outline-none focus:border-slate-400 resize-none leading-relaxed"
           />
@@ -254,11 +254,11 @@ export default function ReunioesPage() {
             </div>
           )}
 
-          <div className="flex gap-3">
-            <button onClick={handleConfirmar} disabled={executando} className="bg-slate-900 hover:bg-slate-700 disabled:opacity-40 text-white text-sm font-medium px-5 py-2.5 rounded-lg transition-colors">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button onClick={handleConfirmar} disabled={executando} className="w-full sm:w-auto bg-slate-900 hover:bg-slate-700 disabled:opacity-40 text-white text-sm font-medium px-5 py-3 rounded-lg transition-colors">
               {executando ? "Executando..." : "Confirmar e executar"}
             </button>
-            <button onClick={handleCancelar} className="bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 text-sm font-medium px-5 py-2.5 rounded-lg transition-colors">
+            <button onClick={handleCancelar} className="w-full sm:w-auto bg-white hover:bg-slate-50 text-slate-600 border border-slate-200 text-sm font-medium px-5 py-3 rounded-lg transition-colors">
               Cancelar
             </button>
           </div>
@@ -272,23 +272,11 @@ export default function ReunioesPage() {
           </div>
 
           {/* Filtros */}
-          <div className="flex gap-3 mb-4">
-            <input
-              value={filtroP}
-              onChange={e => setFiltroP(e.target.value)}
-              placeholder="Filtrar por parceiro..."
-              className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400"
-            />
-            <input
-              type="date"
-              value={filtroData}
-              onChange={e => setFiltroData(e.target.value)}
-              className="border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400"
-            />
+          <div className="flex flex-col sm:flex-row gap-2 mb-4">
+            <input value={filtroP} onChange={e => setFiltroP(e.target.value)} placeholder="Filtrar por parceiro..." className="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400" />
+            <input type="date" value={filtroData} onChange={e => setFiltroData(e.target.value)} className="w-full sm:w-auto border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400" />
             {(filtroP || filtroData) && (
-              <button onClick={() => { setFiltroP(""); setFiltroData(""); }} className="text-xs text-slate-400 hover:text-slate-600 px-2">
-                Limpar
-              </button>
+              <button onClick={() => { setFiltroP(""); setFiltroData(""); }} className="text-xs text-slate-400 hover:text-slate-600 px-2 text-left">Limpar</button>
             )}
           </div>
 
