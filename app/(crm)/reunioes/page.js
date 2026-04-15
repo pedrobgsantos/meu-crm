@@ -4,6 +4,7 @@ import { useState } from "react";
 import PageHeader from "../../components/PageHeader";
 
 const WEBHOOK_URL = "https://pedrobgsantos.app.n8n.cloud/webhook/processar-reuniao";
+const TAREFAS_CRIAR = "https://pedrobgsantos.app.n8n.cloud/webhook/chat-agente";
 
 export default function ReunioesPage() {
   const [notas, setNotas] = useState("");
@@ -55,13 +56,15 @@ export default function ReunioesPage() {
     setExecutando(true);
     const tarefasAtivas = tarefas.filter(t => t.ativo && t.titulo.trim());
     for (const tarefa of tarefasAtivas) {
-      const msg = `criar tarefa para ${tarefa.titulo}${tarefa.prazo ? ` com prazo ${tarefa.prazo}` : " sem prazo"}`;
+      const chatInput = `criar tarefa titulo="${tarefa.titulo}"${tarefa.prazo ? ` prazo="${tarefa.prazo}"` : ' sem prazo'} observacao=""`;
       await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ mensagem: msg, sessionId: "pedro-brigido" }),
+        body: JSON.stringify({
+          mensagem: chatInput,
+          sessionId: "processador-reuniao"
+        }),
       });
-      console.log("Tarefa enviada:", msg);
     }
     if (pipeline && parceiro) {
       const msg = pipeline.acao === "atualizar"
