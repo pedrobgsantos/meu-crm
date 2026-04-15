@@ -300,6 +300,7 @@ export default function FollowUpsPage() {
 
   const urgentes = dados?.urgentes ?? [];
   const atencao  = dados?.atencao  ?? [];
+  const ok       = dados?.ok       ?? [];
 
   return (
     <div>
@@ -341,7 +342,16 @@ export default function FollowUpsPage() {
             diasColorFn={diasColorFn}
             onMarcarFeito={marcarFollowupFeito}
           />
-          {urgentes.length === 0 && atencao.length === 0 && (
+          <Section
+            title="Dentro do prazo"
+            items={ok}
+            dot="bg-green-500"
+            borderColor="border-green-100"
+            badge="text-green-600 bg-green-50 border-green-100"
+            diasColorFn={diasColorFn}
+            onMarcarFeito={marcarFollowupFeito}
+          />
+          {urgentes.length === 0 && atencao.length === 0 && ok.length === 0 && (
             <p className="text-sm text-slate-400 text-center py-12">
               Nenhum follow-up pendente no momento.
             </p>
