@@ -56,7 +56,9 @@ export default function ReunioesPage() {
     setExecutando(true);
     const tarefasAtivas = tarefas.filter(t => t.ativo && t.titulo.trim());
     for (const tarefa of tarefasAtivas) {
-      const chatInput = `criar tarefa titulo="${tarefa.titulo}"${tarefa.prazo ? ` prazo="${tarefa.prazo}"` : ' sem prazo'} observacao=""`;
+      const chatInput = tarefa.prazo
+        ? `criar tarefa: ${tarefa.titulo}, prazo ${tarefa.prazo}`
+        : `criar tarefa: ${tarefa.titulo}, sem prazo`;
       await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
