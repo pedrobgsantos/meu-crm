@@ -141,34 +141,45 @@ export default function ReunioesPage() {
 
   async function handleGravar() {
     if (gravando) {
-      mediaRecorder?.stop();
+      if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+        mediaRecorder.stop();
+      }
       setGravando(false);
       return;
     }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
+      const recorder = new MediaRecorder(stream, { mimeType });
       const chunks = [];
-      recorder.ondataavailable = e => chunks.push(e.data);
+
+      recorder.ondataavailable = e => {
+        if (e.data && e.data.size > 0) chunks.push(e.data);
+      };
+
       recorder.onstop = async () => {
         stream.getTracks().forEach(t => t.stop());
-        const blob = new Blob(chunks, { type: 'audio/webm' });
+        if (chunks.length === 0) return;
+        const blob = new Blob(chunks, { type: mimeType });
         const reader = new FileReader();
         reader.onloadend = async () => {
           const base64 = reader.result.split(',')[1];
-          const res = await fetch('/api/transcrever', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ audio: base64, mimeType: 'audio/webm' }),
-          });
-          const json = await res.json();
-          if (json.status === 'ok' && json.texto) {
-            setNotas(prev => prev ? prev + '\n\n' + json.texto : json.texto);
-          }
+          try {
+            const res = await fetch('/api/transcrever', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ audio: base64, mimeType }),
+            });
+            const json = await res.json();
+            if (json.status === 'ok' && json.texto) {
+              setNotas(prev => prev ? prev + '\n\n' + json.texto : json.texto);
+            }
+          } catch {}
         };
         reader.readAsDataURL(blob);
       };
-      recorder.start();
+
+      recorder.start(1000);
       setMediaRecorder(recorder);
       setGravando(true);
     } catch {
