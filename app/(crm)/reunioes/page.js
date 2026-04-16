@@ -111,6 +111,26 @@ export default function ReunioesPage() {
       resumo_reuniao: dadosProcessados?.resumo_reuniao || "",
       criado_em: new Date().toISOString()
     }, ...prev]);
+    if (memoria.length > 0 && parceiro) {
+      const norm = (s) => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+      for (const ponto of memoria) {
+        await fetch("https://rsyvaviwzlhfncufutoa.supabase.co/rest/v1/parceiro_memoria", {
+          method: "POST",
+          headers: {
+            apikey: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzeXZhdml3emxoZm5jdWZ1dG9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNTg3ODksImV4cCI6MjA5MTYzNDc4OX0.n54iwErxsXPHPVFm09ay2VuPtmXgxp20HLMKXGu1-VQ",
+            Authorization: "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJzeXZhdml3emxoZm5jdWZ1dG9hIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNTg3ODksImV4cCI6MjA5MTYzNDc4OX0.n54iwErxsXPHPVFm09ay2VuPtmXgxp20HLMKXGu1-VQ",
+            "Content-Type": "application/json",
+            Prefer: "return=minimal",
+          },
+          body: JSON.stringify({
+            parceiro: norm(parceiro),
+            tipo: "contexto",
+            conteudo: ponto,
+            origem: "reuniao",
+          }),
+        });
+      }
+    }
     setExecutando(false);
     setExecutado(true);
     setPreview(null);
