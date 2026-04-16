@@ -70,14 +70,14 @@ export default function ReunioesPage() {
     const tarefasAtivas = tarefas.filter(t => t.ativo && t.titulo.trim());
     for (const tarefa of tarefasAtivas) {
       const chatInput = tarefa.prazo
-        ? `criar tarefa: ${parceiro}, prazo ${tarefa.prazo}, observacao ${tarefa.titulo}`
-        : `criar tarefa: ${parceiro}, sem prazo, observacao ${tarefa.titulo}`;
+        ? `criar tarefa: ${tarefa.titulo}, prazo ${tarefa.prazo}`
+        : `criar tarefa: ${tarefa.titulo}, sem prazo`;
       await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           mensagem: chatInput,
-          sessionId: "processador-reuniao"
+          sessionId: `processador-${Date.now()}-${Math.random().toString(36).substr(2,5)}`,
         }),
       });
     }
