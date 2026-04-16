@@ -24,6 +24,8 @@ export default function ReunioesPage() {
   const [filtroP, setFiltroP] = useState("");
   const [filtroData, setFiltroData] = useState("");
   const [expandido, setExpandido] = useState(null);
+  const [gravando, setGravando] = useState(false);
+  const [mediaRecorder, setMediaRecorder] = useState(null);
 
   useEffect(() => {
     fetch("/api/reunioes")
@@ -137,6 +139,43 @@ export default function ReunioesPage() {
     setNotas("");
   }
 
+  async function handleGravar() {
+    if (gravando) {
+      mediaRecorder?.stop();
+      setGravando(false);
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream);
+      const chunks = [];
+      recorder.ondataavailable = e => chunks.push(e.data);
+      recorder.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop());
+        const blob = new Blob(chunks, { type: 'audio/webm' });
+        const reader = new FileReader();
+        reader.onloadend = async () => {
+          const base64 = reader.result.split(',')[1];
+          const res = await fetch('/api/transcrever', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ audio: base64, mimeType: 'audio/webm' }),
+          });
+          const json = await res.json();
+          if (json.status === 'ok' && json.texto) {
+            setNotas(prev => prev ? prev + '\n\n' + json.texto : json.texto);
+          }
+        };
+        reader.readAsDataURL(blob);
+      };
+      recorder.start();
+      setMediaRecorder(recorder);
+      setGravando(true);
+    } catch {
+      alert('Não foi possível acessar o microfone.');
+    }
+  }
+
   function handleCancelar() {
     setPreview(null);
     setErro("");
@@ -167,6 +206,26 @@ export default function ReunioesPage() {
             placeholder="Cole aqui o resumo da reunião, transcrição ou anotações..."
             className="w-full border border-slate-200 rounded-lg px-4 py-3 text-sm text-slate-700 placeholder-slate-400 outline-none focus:border-slate-400 resize-none leading-relaxed"
           />
+          <div className="flex items-center gap-2 mt-3 mb-1">
+            <button
+              onClick={handleGravar}
+              type="button"
+              className={`flex items-center gap-2 text-sm font-medium px-4 py-2 rounded-lg border transition-colors ${
+                gravando
+                  ? 'bg-red-50 border-red-200 text-red-600 animate-pulse'
+                  : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              <svg viewBox="0 0 24 24" fill={gravando ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth={2} className="w-4 h-4">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                <line x1="12" y1="19" x2="12" y2="23"/>
+                <line x1="8" y1="23" x2="16" y2="23"/>
+              </svg>
+              {gravando ? 'Parar gravação' : 'Gravar resumo por voz'}
+            </button>
+            {gravando && <span className="text-xs text-red-500">Gravando... clique para parar</span>}
+          </div>
           {erro && <p className="text-xs text-red-500 mt-2">{erro}</p>}
           {executado && <p className="text-xs text-green-600 mt-2">✓ Ações executadas com sucesso!</p>}
           <div className="mt-4">
