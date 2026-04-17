@@ -5,6 +5,7 @@ import PageHeader from "../../components/PageHeader";
 
 const WEBHOOK_URL = "https://pedrobgsantos.app.n8n.cloud/webhook/processar-reuniao";
 const TAREFAS_CRIAR = "https://pedrobgsantos.app.n8n.cloud/webhook/chat-agente";
+const CRIAR_TAREFA_URL = "https://pedrobgsantos.app.n8n.cloud/webhook/criar-tarefa-direta";
 
 export default function ReunioesPage() {
   const [notas, setNotas] = useState("");
@@ -71,15 +72,13 @@ export default function ReunioesPage() {
     setExecutando(true);
     const tarefasAtivas = tarefas.filter(t => t.ativo && t.titulo.trim());
     for (const tarefa of tarefasAtivas) {
-      const chatInput = tarefa.prazo
-        ? `criar tarefa: ${tarefa.titulo}, prazo ${tarefa.prazo}`
-        : `criar tarefa: ${tarefa.titulo}, sem prazo`;
-      await fetch("/api/chat", {
+      await fetch(CRIAR_TAREFA_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          mensagem: chatInput,
-          sessionId: `processador-${Date.now()}-${Math.random().toString(36).substr(2,5)}`,
+          titulo: tarefa.titulo,
+          prazo: tarefa.prazo || "",
+          observacao: "",
         }),
       });
     }
